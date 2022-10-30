@@ -4,7 +4,7 @@ import javax.annotation.processing.Generated;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema = "testbase")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

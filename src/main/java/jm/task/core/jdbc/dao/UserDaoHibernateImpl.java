@@ -4,11 +4,9 @@ import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 import org.hibernate.*;
 
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 
-public class UserDaoHibernateImpl implements UserDao {
+public class UserDaoHibernateImpl implements UserDao, AutoCloseable {
 
     private static String CREATE_TABLE = "CREATE TABLE `testbase`.`users` (\n" +
             "  `id` INT NOT NULL AUTO_INCREMENT,\n" +
@@ -28,18 +26,22 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        try (Statement statement = util.getConnection().createStatement()) {
-            statement.execute(CREATE_TABLE);
-        } catch (SQLException e) {
+        try (Session session = util.getSessionFactory().getCurrentSession()) {
+            session.beginTransaction();
+            session.createSQLQuery(CREATE_TABLE).executeUpdate();
+            session.getTransaction().commit();
+        } catch (Exception e) {
             System.out.println("Ошибка создания таблицы");
         }
     }
 
     @Override
     public void dropUsersTable() {
-        try (Statement statement = util.getConnection().createStatement()) {
-            statement.execute(DROP_TABLE);
-        } catch (SQLException e) {
+        try (Session session = util.getSessionFactory().getCurrentSession()) {
+            session.beginTransaction();
+            session.createSQLQuery(DROP_TABLE).executeUpdate();
+            session.getTransaction().commit();
+        } catch (Exception e) {
             System.out.println("Ошибка удаления таблицы");
         }
     }
@@ -94,5 +96,10 @@ public class UserDaoHibernateImpl implements UserDao {
         } catch (HibernateException e) {
             System.out.println("Не удалось очистить таблицу");
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        util.close();
     }
 }

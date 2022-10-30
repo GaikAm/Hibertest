@@ -4,6 +4,9 @@ import jm.task.core.jdbc.model.User;
 import org.hibernate.HibernateError;
 import org.hibernate.HibernateException;
 import org.hibernate.SessionFactory;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 
 import java.sql.Connection;
@@ -11,7 +14,7 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class Util {
+public class Util implements AutoCloseable {
 
     private final String URL =
             "jdbc:mysql://localhost:3306/testbase";
@@ -25,12 +28,12 @@ public class Util {
 
     public Util() {
         // === JDBC ===
-        try {
+        /*try {
             Driver driver = new com.mysql.cj.jdbc.Driver();
             DriverManager.registerDriver(driver);
         } catch (SQLException e) {
             System.out.println("Драйвер не зарегестрировался!");
-        }
+        }*/
 
         try {
             connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -49,6 +52,16 @@ public class Util {
         } catch (HibernateException e) {
             System.out.println("Соединение не установлено!");
         }
+
+        /*final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
+                .configure("hibernate.properties")
+                .build();
+        try {
+            sessionFactory = new MetadataSources(registry).buildMetadata().buildSessionFactory();
+        } catch (HibernateException e) {
+            StandardServiceRegistryBuilder.destroy(registry);
+            System.out.println("Соединение не установлено!");
+        }*/
     }
 
     public Connection getConnection() { return connection; }
@@ -56,8 +69,14 @@ public class Util {
     public SessionFactory getSessionFactory() { return sessionFactory; }
 
     @Override
-    protected void finalize() throws Throwable {
-        connection.close();
+    protected void finalize() {
+        //connection.close();
+        sessionFactory.close();
+    }
+
+    @Override
+    public void close() {
+        //connection.close();
         sessionFactory.close();
     }
 }
